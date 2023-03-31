@@ -119,6 +119,9 @@ ModUtil.Path.Context.Wrap("HandleDeath", function ()
         end
 
         baseFunc(argTable)
+        
+        --In some cases IsDead will be set to false by DoPatches() causing the "mirror bug"
+        CurrentRun.Hero.IsDead = true
     end, QuickRestart)
 end, QuickRestart)
 
