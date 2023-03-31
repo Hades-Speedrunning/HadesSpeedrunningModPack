@@ -662,6 +662,79 @@ screen.Components["FreeRoomControlEnabledTextBox"] = CreateScreenComponent({
   })
   itemLocationY = itemLocationY + itemSpacingY
 
+  -----------------
+  -- WaveControl
+  -----------------
+  screen.Components["WaveControlTextBox"] = CreateScreenComponent({
+    Name = "BlankObstacle",
+    Scale = 1,
+    X = itemLocationX,
+    Y = itemLocationY,
+    Group = "Combat_Menu"
+  })
+  CreateTextBox({
+    Id = screen.Components["WaveControlTextBox"].Id,
+    Text = "Wave Settings:",
+    Color = Color.BoonPatchCommon,
+    FontSize = 16,
+    OffsetX = 0, OffsetY = 0,
+    Font = "AlegrayaSansSCRegular",
+    ShadowBlur = 0, ShadowColor = { 0, 0, 0, 1 }, ShadowOffset = { 0,  2 },
+    Justification = "Left"
+  })
+
+  local waveValue = WaveControl.config.WaveSettings
+  local waveTable = {
+    Vanilla = "Vanilla",
+    No3Wave = "No 3 Waves",
+    NoTart3Wave = "No 3 Waves in Tart",
+    Only1Wave = "1 Wave Only"
+  }
+  local waveOptions = {
+    Default = {
+      event = function (dropdown)
+        WaveControl.config.WaveSettings = waveValue
+      end,
+      Text = waveTable[waveValue]
+    },
+    [1] = {
+      event = function (dropdown)
+        WaveControl.config.WaveSettings = "Vanilla"
+      end,
+      Text = "Vanilla"
+    },
+    [2] = {
+      event = function (dropdown)
+        WaveControl.config.WaveSettings = "No3Wave"
+      end,
+      Text = "No 3 Waves"
+    },
+    [3] = {
+      event = function (dropdown)
+        WaveControl.config.WaveSettings = "NoTart3Wave"
+      end,
+      Text = "No 3 Waves in Tart"
+    },
+    [4] = {
+      event = function (dropdown)
+        WaveControl.config.WaveSettings = "Only1Wave"
+      end,
+      Text = "1 Wave Only"
+    }
+  }
+  
+  ErumiUILib.Dropdown.CreateDropdown(screen, {
+      Name = "WaveControlDropDown",
+      Group = "Combat_Menu",  
+      Scale = {X = .3, Y = .5},
+      Padding = {X = 0, Y = 2},
+      X = itemLocationX + itemSpacingX * 3, Y = itemLocationY,
+      GeneralFontSize = 16,
+      Font = "AlegrayaSansSCRegular",
+      Items = waveOptions
+  })
+  itemLocationY = itemLocationY + itemSpacingY
+
   screen.Components["SleepSaysThanks"] = CreateScreenComponent({
     Name = "BlankObstacle",
     Scale = 1,
