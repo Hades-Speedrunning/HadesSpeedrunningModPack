@@ -25,13 +25,14 @@ function ForceSecondGod.IsGodForceEligible( room, godToForce, keepsakeGod, keeps
     or not room.IsMiniBossRoom
     or Contains( previousOffers, godToForce )
     or keepsakeCharges > 0 and not Contains( previousOffers, keepsakeGod )
-    or godToForce == keepsakeGod and timesForceSeen >= 2 and CurrentRun.RunDepthCache < 15
+    or godToForce == keepsakeGod and CurrentRun.RunDepthCache > 14
+    or godToForce == keepsakeGod and timesForceSeen >= 2
     or godToForce ~= keepsakeGod and timesForceSeen >= 1
     or ReachedMaxGods() and timesForceSeen == 0
     then
         return false
     end
-    
+    DebugPrint({Text = "Forcing second god..."})
     return true
 end
 
