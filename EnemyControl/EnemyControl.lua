@@ -133,6 +133,7 @@ EnemyControl.RuleOverrides = { -- Any overrides to enemy eligibility are made he
 }
 
 function EnemyControl.ReadPreset() --Read current preset and create table of enemies marked as eligible
+    EnemyControl.EligibleEnemies = {}
     local Preset = EnemyControl.Presets[config.EnemySetting]
     local InheritVanilla = EnemyControl.InheritVanilla[config.EnemySetting] or {}
     for biome, _ in pairs(Preset) do
@@ -146,11 +147,12 @@ function EnemyControl.ReadPreset() --Read current preset and create table of ene
 end
 
 function EnemyControl.UpdatePools() -- Inject every non-empty biome of the current preset into the relevant biomes in EnemySets.lua
+    EnemySets = ModUtil.Table.Copy( EnemyControl.VanillaSets )
     DebugPrint({Text = "Enemy preset: "..EnemyControl.config.EnemySetting})
+    local target = nil
     for biome, pool in pairs(EnemyControl.EligibleEnemies) do
-        EnemyControl.Target = RCLib.EncodeEnemySet(biome)
-        EnemyControl.Pool = pool
-        ModUtil.Table.Replace(EnemySets[EnemyControl.Target], EnemyControl.Pool)
+        target = RCLib.EncodeEnemySet(biome)
+        EnemySets[target] = ModUtil.Table.Copy(pool)
         DebugPrint({Text = "Updated enemy pool for "..biome})
     end
 end
