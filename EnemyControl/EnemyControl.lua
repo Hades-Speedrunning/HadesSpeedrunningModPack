@@ -146,14 +146,30 @@ function EnemyControl.ReadPreset() --Read current preset and create table of ene
     end
 end
 
-function EnemyControl.UpdatePools() -- Inject every non-empty biome of the current preset into the relevant biomes in EnemySets.lua
+function EnemyControl.UpdatePools() -- Inject every non-empty biome of the current preset into the relevant biomes in EnemySets.lua and update EncounterData.lua
     EnemySets = ModUtil.Table.Copy( EnemyControl.VanillaSets )
     DebugPrint({Text = "Enemy preset: "..EnemyControl.config.EnemySetting})
     local target = nil
-    for biome, pool in pairs(EnemyControl.EligibleEnemies) do
-        target = RCLib.EncodeEnemySet(biome)
-        EnemySets[target] = ModUtil.Table.Copy(pool)
+    for biome, pool in pairs( EnemyControl.EligibleEnemies ) do
+        target = RCLib.EncodeEnemySet( biome )
+        EnemySets[target] = ModUtil.Table.Copy( pool )
         DebugPrint({Text = "Updated enemy pool for "..biome})
+    end
+    for encounter, data in pairs( EncounterData ) do -- If EnemySets is updated without updating EncounterData to match, behaviour is unreliable. Inheritance first
+        if data.InheritFrom then
+            for k, v in ipairs( data.InheritFrom ) do
+                data.EnemySet = EnemySets[EnemyControl.EncounterEnemySets[v]] or data.EnemySet or nil
+                if ModUtil.Path.Get( "data.HardEncounterOverrideValues.EnemySet" ) then
+                    data.HardEncounterOverrideValues.EnemySet = ModUtil.Path.Get( "EnemyControl.EncounterHardEnemySets" )[v] or data.HardEncounterOverrideValues.EnemySet
+                end
+            end
+        end
+    end
+    for encounter, set in pairs( EnemyControl.EncounterEnemySets ) do 
+        EncounterData[encounter].EnemySet = ModUtil.Table.Copy( EnemySets[set] )
+    end
+    for encounter, set in pairs( EnemyControl.EncounterHardEnemySets ) do
+        EncounterData[encounter].HardEncounterOverrideValues = ModUtil.Table.Copy( EnemySets[set] )
     end
 end
 
