@@ -367,10 +367,10 @@ RCLib.NameToCode = {
         
         -- Elysium Enemies
         Eyeball = "ShadeNaked",
-        Bowman = "ShadeBowUnit",
-        Shieldsman = "ShadeShieldUnit",
-        Spearman = "ShadeSpearUnit",
-        Swordsman = "ShadeSwordUnit",
+        Strongbow = "ShadeBowUnit",
+        Greatshield = "ShadeShieldUnit",
+        Longspear = "ShadeSpearUnit",
+        Brightsword = "ShadeSwordUnit",
 
         Chariot = "Chariot",
         Flamewheel = "ChariotSuicide",
@@ -381,10 +381,10 @@ RCLib.NameToCode = {
 
         -- Elysium Armored
         ArmoredEyeball = "ShadeNakedElite",
-        ArmoredBowman = "ShadeBowUnitElite",
-        ArmoredShieldsman = "ShadeShieldUnitElite",
-        ArmoredSpearman = "ShadeSpearUnitElite",
-        ArmoredSwordsman = "ShadeSwordUnitElite",
+        ArmoredStrongbow = "ShadeBowUnitElite",
+        ArmoredGreatshield = "ShadeShieldUnitElite",
+        ArmoredLongspear = "ShadeSpearUnitElite",
+        ArmoredBrightsword = "ShadeSwordUnitElite",
 
         ArmoredChariot = "ChariotElite",
         ArmoredFlamewheel = "ChariotSuicideElite",
@@ -393,16 +393,15 @@ RCLib.NameToCode = {
 
         -- Elysium Super Elite
         SuperEliteEyeball = "ShadeNakedSuperElite",
-        SuperEliteBowman = "ShadeBowUnitSuperElite",
-        SuperEliteShieldsman = "ShadeShieldUnitSuperElite",
-        SuperEliteSpearman = "ShadeSpearUnitSuperElite",
-        SuperEliteSwordsman = "ShadeSwordUnitSuperElite",
+        SuperEliteStrongbow = "ShadeBowUnitSuperElite",
+        SuperEliteGreatshield = "ShadeShieldUnitSuperElite",
+        SuperEliteLongspear = "ShadeSpearUnitSuperElite",
+        SuperEliteBrightsword = "ShadeSwordUnitSuperElite",
 
         SuperEliteChariot = "ChariotSuperElite",
-        SuperEliteSoulCatcher = "FlurrySpawnerSuperElite",
         SuperEliteVoidstone = "ShieldRangedSuperElite",
 
-        SuperEliteiteButterflyBall = "FlurrySpawnerSuperElite",
+        SuperEliteButterflyBall = "FlurrySpawnerSuperElite",
 
         -- Elysium Minibosses
         ButterflyBall = "FlurrySpawnerElite",
@@ -424,8 +423,8 @@ RCLib.NameToCode = {
 
         -- Styx Minibosses
         GiantVermin = "RatThugElite", -- Anthony
-        SnakestoneMiniboss = "HeavyRangedForkedMiniboss",
-        MegaSatyr = "SatyrRangedMiniboss",
+        DireSnakestone = "HeavyRangedForkedMiniboss",
+        MegaSatyr = "SatyrRangedMiniboss", -- 'Dire Satyr Cultist' ingame but this is very rarely used
         TinyVermin = "CrawlerMiniboss", -- Tony
     },
     EnemySets = {
