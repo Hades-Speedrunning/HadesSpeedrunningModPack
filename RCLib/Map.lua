@@ -250,6 +250,43 @@ RCLib.NameToCode = {
         Hammer = "WeaponUpgrade",
         Pom = "StackUpgrade",
     },
+    Bosses = {
+        -- Furies
+        Megaera = "Harpy",
+        Alecto = "Harpy2",
+        Tisiphone = "Harpy3",
+
+        -- Main Lernie Heads
+        OrangeLernie = "HydraHeadImmortal",
+        LavaLernie = "HydraHeadImmortalLavaMaker",
+        BlueLernie = "HydraHeadImmortalSlammer",
+        GreenLernie = "HydraHeadImmortalSummoner",
+        PinkLernie = "HydraHeadImmortalWaveMaker",
+        
+        -- Side Lernie Heads
+        OrangeLernieHead = "HydraHeadDartmaker",
+        LavaLernieHead = "HydraHeadLavaMaker",
+        BlueLernieHead = "HydraHeadSlammer",
+        GreenLernieHead = "HydraHeadSummoner",
+        PinkLernieHead = "HydraHeadWaveMaker",
+
+        LernieEgg = "HydraTooth",
+        EliteLernieEgg = "HydraTooth2",
+
+        -- Heroes
+        Theseus = "Theseus",
+        EM3Theseus = "Theseus2",
+        Asterius = "Minotaur",
+        EM3Asterius = "Minotaur2",
+
+        -- Hades
+        Hades = "Hades",
+        HadesCast = "HadesAmmo",
+        HadesPot = "HadesTombstone",
+        CerberusSummon = "CerberusAssistUnit",
+
+        Charon = "Charon",
+    },
     ChaosBlessings = {
         -- Uses in-game names for blessings and curses.
         -- Several curses and blessings are unused- these are not currently included.
@@ -585,6 +622,56 @@ RCLib.NameToCode = {
         PomBlossom = "ChamberStackTrait",
         SigilOfTheDead = "HadesShoutKeepsake",
     },
+    RoomRewards = {
+        -- Blue Laurels
+        Darkness = "RoomRewardMetaPointDrop",
+        Gemstones = "GemDrop",
+        ChthonicKey = "LockKeyDrop",
+        Nectar = "GiftDrop",
+        Food = "RoomRewardHealDrop", -- lol
+
+        -- Upgraded Blue Laurels
+        PitchBlackDarkness = "RoomRewardMetaPointDrop",
+        BrilliantGemstones = "GemDropRunProgress",
+        FatedKey = "LockKeyDropRunProgress",
+        VintageNectar = "GiftDropRunProgress",
+
+        -- Gold Laurels
+        Boon = "Boon",
+        CentaurHeart = "RoomRewardMaxHealthDrop",
+        DaedalusHammer = "WeaponUpgrade",
+        Hermes = "HermesUpgrade",
+        CharonsObol = "RoomRewardMoneyDrop",
+        PomOfPower = "StackUpgrade",
+
+        Trial = "Devotion",
+
+        -- Bounties
+        TitansBlood = "SuperLockKeyDrop",
+        Diamond = "SuperGemDrop",
+        Ambrosia = "SuperGiftDrop",
+    },
+    ShopRewards = {
+        Boon = "RandomLoot",
+        RandomBag = "BlindBoxLoot", -- No official name
+
+        Darkness = "StoreRewardMetaPointDrop",
+        Gemstones = "StoreRewardGemDrop",
+        ChthonicKey = "StoreRewardLockKeyDrop",
+        Nectar = "GiftDrop", -- Cannot appear ingame due to a bug
+        Food = "RoomRewardHealDrop",
+
+        CentaurHeart = "RoomRewardMaxHealthDrop",
+        DaedalusHammer = "WeaponUpgradeDrop",
+        Hermes = "HermesUpgradeDrop",
+        Onion = "StoreRewardConsolationDrop", -- Cannot appear ingame due to a bug
+        PomOfPower = "StackUpgradeDrop",
+        PomSlice = "StoreRewardRandomStack",
+
+        AnvilOfFates = "ChaosWeaponUpgrade",
+        UpgradedPomOfPower = "StackUpgradeDropRare", -- No official name. Appears in Styx
+        UpgradedBoon = "BoostedRandomLoot", -- No official name. Appears in Styx
+    },
     WellItems = {
         -- Uses in-game names for well items.
         -- Several well items are unused; these are not currently included. Patroclus' items, however, are- they will also work correctly when placed in wells.
@@ -626,23 +713,30 @@ RCLib.CodeToName = {
     Aspects = {},
     Boons = {},
     BoonSets = {},
+    Bosses = {},
     ChaosBlessings = {},
     ChaosCurses = {},
     Enemies = {},
     EnemySets = {},
     Hammers = {},
     Keepsakes = {},
+    RoomRewards = {},
+    ShopRewards = {},
+    WellItems = {}
 }
 
 RCLib.CodeToName.Aspects = ModUtil.Table.Transpose(RCLib.NameToCode.Aspects)
 RCLib.CodeToName.Boons = ModUtil.Table.Transpose(RCLib.NameToCode.Boons)
 RCLib.CodeToName.BoonSets = ModUtil.Table.Transpose(RCLib.NameToCode.BoonSets)
+RCLib.CodeToName.Bosses = ModUtil.Table.Transpose(RCLib.NameToCode.Bosses)
 RCLib.CodeToName.ChaosBlessings = ModUtil.Table.Transpose(RCLib.NameToCode.ChaosBlessings)
 RCLib.CodeToName.ChaosCurses = ModUtil.Table.Transpose(RCLib.NameToCode.ChaosCurses)
 RCLib.CodeToName.Enemies = ModUtil.Table.Transpose(RCLib.NameToCode.Enemies)
 RCLib.CodeToName.EnemySets = ModUtil.Table.Transpose(RCLib.NameToCode.EnemySets)
 RCLib.CodeToName.Hammers = ModUtil.Table.Transpose(RCLib.NameToCode.Hammers)
 RCLib.CodeToName.Keepsakes = ModUtil.Table.Transpose(RCLib.NameToCode.Keepsakes)
+RCLib.CodeToName.RoomRewards = ModUtil.Table.Transpose(RCLib.NameToCode.RoomRewards)
+RCLib.CodeToName.ShopRewards = ModUtil.Table.Transpose(RCLib.NameToCode.ShopRewards)
 RCLib.CodeToName.WellItems = ModUtil.Table.Transpose(RCLib.NameToCode.WellItems)
 
 function RCLib.EncodeAspect(name)
@@ -667,6 +761,14 @@ end
 
 function RCLib.DecodeBoonSet(name)
     return RCLib.CodeToName.BoonSets[name]
+end
+
+function RCLib.EncodeBoss(name)
+    return RCLib.NameToCode.Bosses[name]
+end
+
+function RCLib.DecodeBoss(name)
+    return RCLib.CodeToName.Bosses[name]
 end
 
 function RCLib.EncodeChaosBlessing(name)
@@ -715,6 +817,22 @@ end
 
 function RCLib.DecodeKeepsake(name)
     return RCLib.CodeToName.Keepsakes[name]
+end
+
+function RCLib.EncodeRoomReward(name)
+    return RCLib.NameToCode.RoomRewards[name]
+end
+
+function RCLib.DecodeRoomReward(name)
+    return RCLib.CodeToName.RoomRewards[name]
+end
+
+function RCLib.EncodeShopReward(name)
+    return RCLib.NameToCode.ShopRewards[name]
+end
+
+function RCLib.DecodeShopReward(name)
+    return RCLib.CodeToName.ShopRewards[name]
 end
 
 function RCLib.EncodeWellItem(name)
