@@ -32,8 +32,8 @@ EnemyControl.Presets = { -- Define rulesets
             Gorgon = false,
         },
         Elysium = {
-            Bowman = false,
-            Swordsman = false,
+            Strongbow = false,
+            Brightsword = false,
             Flamewheel = false,
         },
         StyxSmallRoom = {
