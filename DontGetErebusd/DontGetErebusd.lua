@@ -33,11 +33,11 @@ function DontGetErebusd.CheckDoors( doors, god )
 
     for index, door in ipairs( doors ) do
         local room = door.Room
-        if room.BiomeName == "Challenge" and room.ForceLootName == god then
+        if room.BiomeName == "Challenge" and room.ChosenRewardType == "Boon" and room.ForceLootName == god then
             foundErebus = true
             erebusIndex = index
             DebugPrint({ Text = "Found Erebus door with "..god.."!" })
-        elseif room.BiomeName ~= "Challenge" and room.ForceLootName ~= god and not foundGodName then
+        elseif room.BiomeName ~= "Challenge" and room.ChosenRewardType == "Boon" and room.ForceLootName ~= god and not foundGodName then
             foundGodIndex = index
             foundGodName = room.ForceLootName
             DebugPrint({ Text = "Found non-Erebus door with "..foundGodName })
