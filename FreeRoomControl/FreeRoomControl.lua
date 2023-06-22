@@ -8,18 +8,24 @@
 ModUtil.Mod.Register("FreeRoomControl")
 
 local config = {
-    Enabled = true, -- If enabled, remove conflicts
+    RemoveConflicts = true,
+    ForceMidshop = "None",
+    MinFreeRooms = 0,
 }
 FreeRoomControl.config = config
 FreeRoomControl.CurrentDoors = {}
 FreeRoomControl.FoundPriority = false
+FreeRoomControl.Biome = "Tartarus"
+FreeRoomControl.FreeRoomsThisBiome = 0
+FreeRoomControl.FreeRoomNeeded = false
+FreeRoomControl.FreeRoomToForce = ""
+FreeRoomControl.TimeUntilShop = nil
 
 FreeRoomControl.IsPriorityRoom = { -- Priority rooms are to be kept in conflicts
     A_Shop01 = true,
     B_Shop01 = true,
     C_Shop01 = true,
 }
-
 FreeRoomControl.IsFreeRoom = {
     A_Shop01 = true,
     A_Reprieve01 = true,
@@ -30,6 +36,36 @@ FreeRoomControl.IsFreeRoom = {
     C_Shop01 = true,
     C_Reprieve01 = true,
     C_Story01 = true,
+}
+FreeRoomControl.BiomeMidshops = {
+    Tartarus = "A_Shop01",
+    Asphodel = "B_Shop01",
+    Elysium = "C_Shop01",
+}
+FreeRoomControl.BiomeEndDepths = { -- The depth at which each biome forces endshop
+    Tartarus = 11,
+    Asphodel = 7,
+    Elysium = 9,
+}
+FreeRoomControl.BiomeShopDepths = { 
+    None = { -- Dummy setting- you can never be at biomeDepth -1, so this will just never force shop under any circumstances
+        Tartarus = -1,
+        Asphodel = -1,
+        Elysium = -1,
+        Styx = -1,
+    },
+    Start = { -- The lowest depth at which each biome can have its midshop
+        Tartarus = 4,
+        Asphodel = 3,
+        Elysium = 3,
+        Styx = -1,
+    },
+    End = { -- The highest depth at which each biome can have its midshop
+        Tartarus = 9,
+        Asphodel = 5,
+        Elysium = 6,
+        Styx = -1,
+    },
 }
 
 function FreeRoomControl.CheckDoors( doors ) -- Check a table of offered doors, storing which are free/priority and returning how many free rooms are found
@@ -119,26 +155,162 @@ function FreeRoomControl.RefreshDoor( door ) -- Remove and replace a door's icon
     CreateDoorRewardPreview( door )
 end
 
-ModUtil.Path.Wrap("DoUnlockRoomExits", function( baseFunc, run, room )
-    baseFunc( run, room )
-    if FreeRoomControl.config.Enabled then
-        FreeRoomControl.CurrentDoors = {}
-        FreeRoomControl.FoundPriority = false
-        local freeRoomsNum = 0
-        local exitDoorsIPairs = CollapseTableOrdered( OfferedExitDoors )
-
-        freeRoomsNum = FreeRoomControl.CheckDoors( exitDoorsIPairs )
-        if freeRoomsNum > 1 then
-            DebugPrint({Text = "Free room conflict! Resolving..."})
-            FreeRoomControl.ResolveConflicts( exitDoorsIPairs )
-        end
+function FreeRoomControl.IsFreeRoomNeeded( currentRun, currentRoom ) -- Check how many free rooms we've had so far, and if we need to force one
+    DebugPrint({ Text = "Current biome: " .. FreeRoomControl.Biome })
+    DebugPrint({ Text = "Free rooms so far: " .. FreeRoomControl.FreeRoomsThisBiome or 0 })
+    if FreeRoomControl.Biome == "Styx" then
+        return false
     end
-end, FreeRoomControl)
+    local roomsLeft = math.max( FreeRoomControl.BiomeEndDepths[FreeRoomControl.Biome] - currentRun.BiomeDepthCache, 0 )
+    local freeRoomsLeft = math.min( FreeRoomControl.config.MinFreeRooms - FreeRoomControl.FreeRoomsThisBiome, roomsLeft )
+
+    DebugPrint({ Text =  math.max( freeRoomsLeft, 0 ).." of "..roomsLeft.." remaining rooms need to be free" })
+    if roomsLeft > 0 and roomsLeft == freeRoomsLeft then
+        return true
+    end
+    return false
+end
+
+ModUtil.Path.Wrap( "StartRoom", function( baseFunc, currentRun, currentRoom )
+    if currentRoom.RoomSetName ~= "Secrets" and currentRoom.RoomSetName ~= "Base" then
+        FreeRoomControl.Biome = currentRoom.RoomSetName or FreeRoomControl.Biome or "Tartarus"
+    end
+    if currentRun.BiomeDepthCache <= 1 then -- c1 has a biome depth of 0, but the first room of every other biome is at depth 1
+        FreeRoomControl.FreeRoomsThisBiome = 0
+    end
+    FreeRoomControl.FreeRoomNeeded = FreeRoomControl.IsFreeRoomNeeded( currentRun, currentRoom )
+    local shopDepth = FreeRoomControl.BiomeShopDepths[FreeRoomControl.config.ForceMidshop][FreeRoomControl.Biome]
+    FreeRoomControl.TimeUntilShop = ( shopDepth - currentRun.BiomeDepthCache ) or nil
+    baseFunc( currentRun, currentRoom )
+end, FreeRoomControl )
+
+ModUtil.Path.Wrap( "StartEncounter", function( baseFunc, currentRun, currentRoom, currentEncounter )
+    if currentEncounter.ObjectiveSets == "ThanatosChallenge" or currentEncounter.EncounterType == "SurvivalChallenge" then
+        FreeRoomControl.FreeRoomsThisBiome = FreeRoomControl.FreeRoomsThisBiome + 1
+        FreeRoomControl.FreeRoomNeeded = FreeRoomControl.IsFreeRoomNeeded( currentRun, currentRoom ) -- Adding a free room might affect whether one needs forcing, so re-check
+    end
+    baseFunc( currentRun, currentRoom, currentEncounter )
+end, FreeRoomControl )
+
+ModUtil.Path.Wrap( "DoUnlockRoomExits", function( baseFunc, run, room )
+    baseFunc( run, room )
+    FreeRoomControl.CurrentDoors = {}
+    FreeRoomControl.FoundPriority = false
+    local freeRoomsNum = 0
+    local exitDoorsIPairs = CollapseTableOrdered( OfferedExitDoors )
+
+    freeRoomsNum = FreeRoomControl.CheckDoors( exitDoorsIPairs )
+    if freeRoomsNum > 1 and FreeRoomControl.config.RemoveConflicts then
+        FreeRoomControl.FreeRoomsThisBiome = FreeRoomControl.FreeRoomsThisBiome + 1
+        DebugPrint({Text = "Free room conflict! Resolving..."})
+        FreeRoomControl.ResolveConflicts( exitDoorsIPairs )
+    else
+        FreeRoomControl.FreeRoomsThisBiome = FreeRoomControl.FreeRoomsThisBiome + freeRoomsNum
+    end
+end, FreeRoomControl )
 
 ModUtil.Path.Wrap( "IsRoomEligible", function( baseFunc, currentRun, currentRoom, nextRoomData, args )
     args = args or {}
     if args.BanFreeRooms and FreeRoomControl.IsFreeRoom[nextRoomData.Name] then
         return false
     end
+    if ( nextRoomData.NumExits or 0 ) < 2 and FreeRoomControl.TimeUntilShop == 1 then
+        return false
+    end
     return baseFunc( currentRun, currentRoom, nextRoomData, args )
-end, FreeRoomControl)
+end, FreeRoomControl )
+
+ModUtil.Path.Wrap( "IsRoomForced", function( baseFunc, currentRun, currentRoom, nextRoomData, args )
+    args = args or {}
+    if nextRoomData.Name == FreeRoomControl.BiomeMidshops[FreeRoomControl.Biome] and FreeRoomControl.TimeUntilShop == 0 then
+        return true
+    end
+    return baseFunc( currentRun, currentRoom, nextRoomData, args )
+end, FreeRoomControl )
+
+ModUtil.Path.Override( "ChooseNextRoomData", function( currentRun, args ) -- Override is how we force free rooms. Alternative is wrapping IsRoomForced, but that causes illegal behaviour wrt rooms already forced in vanilla. This is less clean but maintains legal behaviour
+    args = args or {}
+
+    local currentRoom = currentRun.CurrentRoom
+    local roomSetName = currentRun.CurrentRoom.RoomSetName or "Tartarus"
+    if args.ForceNextRoomSet ~= nil then
+        roomSetName = args.ForceNextRoomSet
+    elseif currentRoom.NextRoomSet ~= nil then
+        roomSetName = GetRandomValue( currentRoom.NextRoomSet )
+    elseif currentRoom.UsePreviousRoomSet then
+        local previousRoom = GetPreviousRoom(currentRun) or currentRoom
+        roomSetName = previousRoom.RoomSetName or "Tartarus"
+    elseif currentRoom.NextRoomSetNoGenerate ~= nil then
+        roomSetName = GetRandomValue( currentRoom.NextRoomSetNoGenerate )
+    end
+
+    local roomDataSet = args.RoomDataSet or RoomSetData[roomSetName]
+    local nextRoomData = nil
+    if ForceNextRoom ~= nil and RoomData[ForceNextRoom] ~= nil then
+        nextRoomData = RoomData[ForceNextRoom]
+    elseif args.ForceNextRoom ~= nil and RoomData[args.ForceNextRoom] ~= nil then
+        nextRoomData = RoomData[args.ForceNextRoom]
+    elseif currentRoom.LinkedRoom ~= nil or currentRoom.LinkedRooms ~= nil or currentRoom.LinkedRoomByPactLevel then
+        local nextRoomName = currentRoom.LinkedRoom
+        if currentRoom.LinkedRooms ~= nil then
+            local eligibleRoomNames = {}
+            local forcedRoomNames = {}
+            for i, linkedRoomName in ipairs( CollapseTableOrdered( currentRoom.LinkedRooms ) ) do
+                if IsRoomEligible( currentRun, currentRoom, roomDataSet[linkedRoomName], args ) then
+                    table.insert( eligibleRoomNames, linkedRoomName )
+                    if IsRoomForced( currentRun, currentRoom, roomDataSet[linkedRoomName], args ) then
+                        table.insert( forcedRoomNames, linkedRoomName )
+                    end
+                end
+            end
+            if not IsEmpty( forcedRoomNames ) then
+                nextRoomName = GetRandomValue( forcedRoomNames )
+            else
+                nextRoomName = GetRandomValue( eligibleRoomNames )
+            end
+        elseif currentRoom.LinkedRoomByPactLevel then
+            local shrineLevel = GetNumMetaUpgrades( currentRoom.ShrineMetaUpgradeName )
+            nextRoomName = currentRoom.LinkedRoomByPactLevel[shrineLevel]
+        end
+
+        if nextRoomName ~= nil then
+            nextRoomData = roomDataSet[nextRoomName]
+        end
+    end
+
+    if nextRoomData == nil then
+        local eligibleRooms = {}
+        local forcedRooms = {}
+        -- CHANGES MADE HERE
+        local freeRooms = {}
+        for i, kvp in ipairs( CollapseTableAsOrderedKeyValuePairs( roomDataSet ) ) do
+            local roomName = kvp.Key
+            local roomData = kvp.Value
+            if IsRoomEligible( currentRun, currentRoom, roomData, args ) then
+                table.insert( eligibleRooms, roomData )
+                if FreeRoomControl.IsFreeRoom[roomName] then
+                    table.insert( freeRooms, roomData )
+                end
+                if IsRoomForced( currentRun, currentRoom, roomData, args ) then
+                    table.insert( forcedRooms, roomData )
+                end
+            end
+        end
+        if not IsEmpty( forcedRooms ) then
+            nextRoomData = GetRandomValue( forcedRooms )
+        elseif FreeRoomControl.FreeRoomNeeded and not IsEmpty( freeRooms) then
+            nextRoomData = GetRandomValue( freeRooms )
+            DebugPrint({ Text = "Choosing "..nextRoomData.Name.." as free room"})
+        else
+            nextRoomData = GetRandomValue( eligibleRooms )
+        end
+    end
+
+    DebugAssert({ Condition = nextRoomData ~= nil, Text = "No eligible rooms for exit door!"  })
+    if nextRoomData and nextRoomData.Name and FreeRoomControl.IsFreeRoom[nextRoomData.Name] then
+        FreeRoomControl.FreeRoomNeeded = false
+    end
+    -- END CHANGES
+    return nextRoomData
+
+end, FreeRoomControl )
