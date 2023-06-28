@@ -13,7 +13,7 @@ ModUtil.Path.Wrap( "FillInShopOptions", function( baseFunc, args )
     local reward = RCLib.EncodeShopReward( NoLateHammer.config.AspectSettings[aspect] )
 
     if NoLateHammer.config.Enabled
-    and CurrentRun.CurrentRoom.Name == NoLateHammer.config.ShopToUse
+    and Contains( NoLateHammer.config.ShopsToUse, CurrentRun.CurrentRoom.Name )
     and ( StoreItemEligible( ConsumableData[reward], args ) or not NoLateHammer.config.CheckEligibility ) then
         store.StoreOptions[3] = { Name = reward, Type = "Consumable" }
     end
