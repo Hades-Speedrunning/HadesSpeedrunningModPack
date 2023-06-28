@@ -15,10 +15,13 @@ local config = {
 FreeRoomControl.config = config
 FreeRoomControl.CurrentDoors = {}
 FreeRoomControl.FoundPriority = false
+FreeRoomControl.CurrentRewardStore = nil
+FreeRoomControl.RewardStoreData = {}
+FreeRoomControl.RewardKey = nil
+FreeRoomControl.DoorRewards = {}
 FreeRoomControl.Biome = "Tartarus"
 FreeRoomControl.FreeRoomsThisBiome = 0
 FreeRoomControl.FreeRoomNeeded = false
-FreeRoomControl.FreeRoomToForce = ""
 FreeRoomControl.TimeUntilShop = nil
 
 FreeRoomControl.IsPriorityRoom = { -- Priority rooms are to be kept in conflicts
@@ -98,7 +101,7 @@ function FreeRoomControl.ResolveConflicts( doors )
         local name = door.Room.Name
         local doorData = FreeRoomControl.CurrentDoors[index]
         local needsRerolling = true
-        
+
         local rewardsChosen = {}
         for index, offeredDoor in pairs( OfferedExitDoors ) do
             if offeredDoor.Room ~= nil then
@@ -119,29 +122,22 @@ function FreeRoomControl.ResolveConflicts( doors )
         if needsRerolling then
             DebugPrint({Text = "Rerolling "..name})
             CurrentRun.RoomCreations[name] = CurrentRun.RoomCreations[name] - 1 -- Mark the room as having not been seen, so it can appear again
-            local rollReward = true
-            local storedReward = nil
-            if door.Room.ChosenRewardType ~= nil and door.Room.ChosenRewardType ~= "Story" then
-                storedReward = door.Room.ChosenRewardType
-                rollReward = false
-                DebugPrint({Text = "No new reward needed"}) -- If room already has a reward attached- i.e., it's a fountain- there's no need to pick a new one
+            if FreeRoomControl.DoorRewards[index] then
+                table.insert( CurrentRun.RewardStores[FreeRoomControl.CurrentRewardStore], FreeRoomControl.DoorRewards[index] ) -- Re-add a chosen reward to the bag
+                FreeRoomControl.DoorRewards[index] = nil
             end
 
-            local roomForDoorData = ChooseNextRoomData( CurrentRun, { BanFreeRooms = true } )
-            local roomForDoor = CreateRoom( roomForDoorData, { SkipChooseReward = not rollReward, PreviouslyChosenRewards = rewardsChosen } )
+            local roomForDoorData = ChooseNextRoomData( CurrentRun, { RequiredRewardStore = FreeRoomControl.CurrentRewardStore, BanFreeRooms = true } )
+            local roomForDoor = CreateRoom( roomForDoorData, { RewardStoreName = FreeRoomControl.CurrentRewardStore, PreviouslyChosenRewards = rewardsChosen } )
             door.Room = roomForDoor
-            door.Room.ChosenRewardType = storedReward or door.Room.ChosenRewardType
-            
-            if rollReward then
-                FreeRoomControl.RefreshDoor( door )
-            end
+            FreeRoomControl.RefreshDoorIcon( door )
 
             StopAnimation({ DestinationId = door.DoorIconFront, Names = { "ConsecrationBuffedFront" }, PreventChain = true }) -- Fountain visual from DoorVisualIndicators
         end
     end
 end
 
-function FreeRoomControl.RefreshDoor( door ) -- Remove and replace a door's icon without playing a breaking animation
+function FreeRoomControl.RefreshDoorIcon( door ) -- Remove and replace a door's icon without playing a breaking animation
     if door.DoorIconId ~= nil then
         SetAlpha({ Id = door.DoorIconId, Fraction = 0, Duration = 0.1 })
         RemoveFromGroup({ Name = "Standing", Id =  door.DoorIconFront })
@@ -178,6 +174,11 @@ ModUtil.Path.Wrap( "StartRoom", function( baseFunc, currentRun, currentRoom )
     if currentRun.BiomeDepthCache <= 1 then -- c1 has a biome depth of 0, but the first room of every other biome is at depth 1
         FreeRoomControl.FreeRoomsThisBiome = 0
     end
+    FreeRoomControl.CurrentRewardStore = nil
+    FreeRoomControl.RewardStoreData = {}
+    FreeRoomControl.DoorRewards = {}
+    FreeRoomControl.RewardKey = nil
+
     FreeRoomControl.FreeRoomNeeded = FreeRoomControl.IsFreeRoomNeeded( currentRun, currentRoom )
     local shopDepth = FreeRoomControl.BiomeShopDepths[FreeRoomControl.config.ForceMidshop][FreeRoomControl.Biome]
     FreeRoomControl.TimeUntilShop = ( shopDepth - currentRun.BiomeDepthCache ) or nil
@@ -190,6 +191,20 @@ ModUtil.Path.Wrap( "StartEncounter", function( baseFunc, currentRun, currentRoom
         FreeRoomControl.FreeRoomNeeded = FreeRoomControl.IsFreeRoomNeeded( currentRun, currentRoom ) -- Adding a free room might affect whether one needs forcing, so re-check
     end
     baseFunc( currentRun, currentRoom, currentEncounter )
+end, FreeRoomControl )
+
+ModUtil.Path.Context.Wrap( "DoUnlockRoomExits", function()
+    ModUtil.Path.Wrap( "ChooseRoomReward", function( baseFunc, run, room, rewardStoreName, previouslyChosenRewards, args )
+        -- Create a list of the rewards chosen thus far, including their game state requirements etc. Allows returning exact copies to the bag if a door is rerolled
+        if FreeRoomControl.CurrentRewardStore == nil then
+            FreeRoomControl.CurrentRewardStore = rewardStoreName
+        end
+        FreeRoomControl.RewardStoreData = ModUtil.Table.Copy( run.RewardStores[rewardStoreName] )
+        local rewardName = baseFunc( run, room, rewardStoreName, previouslyChosenRewards, args )
+        local index = ModUtil.Locals.Stacked().index
+        FreeRoomControl.DoorRewards[index] = FreeRoomControl.RewardStoreData[FreeRoomControl.RewardKey]
+        return rewardName
+    end, FreeRoomControl )
 end, FreeRoomControl )
 
 ModUtil.Path.Wrap( "DoUnlockRoomExits", function( baseFunc, run, room )
@@ -209,9 +224,20 @@ ModUtil.Path.Wrap( "DoUnlockRoomExits", function( baseFunc, run, room )
     end
 end, FreeRoomControl )
 
+ModUtil.Path.Context.Wrap( "ChooseRoomReward", function()
+    ModUtil.Path.Wrap( "GetRandomValue", function( baseFunc, tableArg, rng )
+        FreeRoomControl.RewardKey = baseFunc( tableArg, rng )
+        return FreeRoomControl.RewardKey
+    end, FreeRoomControl)
+end, FreeRoomControl)
+
 ModUtil.Path.Wrap( "IsRoomEligible", function( baseFunc, currentRun, currentRoom, nextRoomData, args )
     args = args or {}
     if args.BanFreeRooms and FreeRoomControl.IsFreeRoom[nextRoomData.Name] then
+        return false
+    end
+    if args.RequiredRewardStore and nextRoomData.ForcedRewardStore and args.RequiredRewardStore ~= nextRoomData.ForcedRewardStore then
+        -- If we're rerolling a conflict, we've already chosen a reward store. We can't use any rooms that, had they been chosen the first time, would've forced a different reward store
         return false
     end
     if ( nextRoomData.NumExits or 0 ) < 2 and FreeRoomControl.TimeUntilShop == 1 then
