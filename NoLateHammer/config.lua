@@ -1,6 +1,6 @@
 local config = {
-    Enabled = true,
-    ShopToUse = "A_Shop01",
+    Enabled = false,
+    ShopsToUse = { "A_Shop01", "A_PreBoss01" },
     AspectSettings = {
         ZagreusSword = "DaedalusHammer",
         NemesisSword = "DaedalusHammer",
