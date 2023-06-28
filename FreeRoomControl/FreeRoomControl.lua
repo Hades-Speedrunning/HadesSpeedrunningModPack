@@ -324,7 +324,7 @@ ModUtil.Path.Override( "ChooseNextRoomData", function( currentRun, args ) -- Ove
         end
         if not IsEmpty( forcedRooms ) then
             nextRoomData = GetRandomValue( forcedRooms )
-        elseif FreeRoomControl.FreeRoomNeeded and not IsEmpty( freeRooms) then
+        elseif FreeRoomControl.FreeRoomNeeded and not IsEmpty( freeRooms ) then
             nextRoomData = GetRandomValue( freeRooms )
             DebugPrint({ Text = "Choosing "..nextRoomData.Name.." as free room"})
         else
