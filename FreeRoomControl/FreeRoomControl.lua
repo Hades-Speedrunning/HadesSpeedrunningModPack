@@ -240,7 +240,7 @@ ModUtil.Path.Wrap( "IsRoomEligible", function( baseFunc, currentRun, currentRoom
         -- If we're rerolling a conflict, we've already chosen a reward store. We can't use any rooms that, had they been chosen the first time, would've forced a different reward store
         return false
     end
-    if ( nextRoomData.NumExits or 0 ) < 2 and FreeRoomControl.TimeUntilShop == 1 then
+    if nextRoomData.Name ~= FreeRoomControl.BiomeMidshops[FreeRoomControl.Biome] and ( nextRoomData.NumExits or 0 ) < 2 and FreeRoomControl.TimeUntilShop == 1 then
         return false
     end
     return baseFunc( currentRun, currentRoom, nextRoomData, args )
