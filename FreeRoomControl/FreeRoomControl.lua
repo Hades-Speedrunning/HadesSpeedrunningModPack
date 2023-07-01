@@ -233,6 +233,9 @@ end, FreeRoomControl)
 
 ModUtil.Path.Wrap( "IsRoomEligible", function( baseFunc, currentRun, currentRoom, nextRoomData, args )
     args = args or {}
+    local shop = FreeRoomControl.BiomeMidshops[FreeRoomControl.Biome]
+    local shopSeen = ( currentRun.RoomCreations[shop] or 0 ) > 0
+
     if args.BanFreeRooms and FreeRoomControl.IsFreeRoom[nextRoomData.Name] then
         return false
     end
@@ -240,7 +243,8 @@ ModUtil.Path.Wrap( "IsRoomEligible", function( baseFunc, currentRun, currentRoom
         -- If we're rerolling a conflict, we've already chosen a reward store. We can't use any rooms that, had they been chosen the first time, would've forced a different reward store
         return false
     end
-    if nextRoomData.Name ~= FreeRoomControl.BiomeMidshops[FreeRoomControl.Biome] and ( nextRoomData.NumExits or 0 ) < 2 and FreeRoomControl.TimeUntilShop == 1 then
+    if nextRoomData.Name ~= shop and not shopSeen and ( nextRoomData.NumExits or 0 ) < 2 and FreeRoomControl.TimeUntilShop == 1 then
+        -- If the chamber -after- this one has to be shop, we need this one to be a 2-exit room, so that shop is eligible afterwards.
         return false
     end
     return baseFunc( currentRun, currentRoom, nextRoomData, args )
@@ -248,7 +252,10 @@ end, FreeRoomControl )
 
 ModUtil.Path.Wrap( "IsRoomForced", function( baseFunc, currentRun, currentRoom, nextRoomData, args )
     args = args or {}
-    if nextRoomData.Name == FreeRoomControl.BiomeMidshops[FreeRoomControl.Biome] and FreeRoomControl.TimeUntilShop == 0 then
+    local shop = FreeRoomControl.BiomeMidshops[FreeRoomControl.Biome]
+    local shopSeen = ( currentRun.RoomCreations[shop] or 0 ) > 0
+
+    if nextRoomData.Name == shop and not shopSeen and FreeRoomControl.TimeUntilShop == 0 then
         return true
     end
     return baseFunc( currentRun, currentRoom, nextRoomData, args )
