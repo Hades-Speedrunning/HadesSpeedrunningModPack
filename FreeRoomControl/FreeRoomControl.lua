@@ -235,6 +235,11 @@ ModUtil.Path.Wrap( "IsRoomEligible", function( baseFunc, currentRun, currentRoom
     args = args or {}
     local shop = FreeRoomControl.BiomeMidshops[FreeRoomControl.Biome]
     local shopSeen = ( currentRun.RoomCreations[shop] or 0 ) > 0
+    local isDualExit = ( nextRoomData.NumExits or 0 ) > 1
+    local isForcedChaos = false
+    if currentRoom then
+        isForcedChaos = currentRoom.ForceSecretDoor and nextRoomData.RoomSetName == "Secrets" -- Applies if this room is a Chaos forced by a Light of Ixion
+    end
 
     if args.BanFreeRooms and FreeRoomControl.IsFreeRoom[nextRoomData.Name] then
         return false
@@ -243,7 +248,7 @@ ModUtil.Path.Wrap( "IsRoomEligible", function( baseFunc, currentRun, currentRoom
         -- If we're rerolling a conflict, we've already chosen a reward store. We can't use any rooms that, had they been chosen the first time, would've forced a different reward store
         return false
     end
-    if nextRoomData.Name ~= shop and not shopSeen and ( nextRoomData.NumExits or 0 ) < 2 and FreeRoomControl.TimeUntilShop == 1 then
+    if FreeRoomControl.TimeUntilShop == 1 and not shopSeen and nextRoomData.Name ~= shop and not isDualExit and not isForcedChaos then
         -- If the chamber -after- this one has to be shop, we need this one to be a 2-exit room, so that shop is eligible afterwards.
         return false
     end
