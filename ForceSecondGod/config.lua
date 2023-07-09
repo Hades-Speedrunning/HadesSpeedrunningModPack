@@ -1,5 +1,6 @@
 local config = {
     Enabled = true,
+    PreventErebus = true,
     AspectSettings = {
         ZagreusSword = "Athena",
         NemesisSword = "Artemis",
