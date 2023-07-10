@@ -106,7 +106,6 @@ ModUtil.Path.Wrap( "StartNewRun", function ( baseFunc, currentRun )
     return baseFunc(currentRun)
 end, BoonControl)
 
-
 ModUtil.Path.Wrap( "StartRoom", function( baseFunc, currentRun, currentRoom )
 	BoonControl.GodAppearances = ModUtil.Table.Copy(currentRun.LootTypeHistory)
 	-- LootTypeHistory is always accurate at the start and end of a room, but increments at an unpredictable time.
@@ -136,7 +135,7 @@ ModUtil.Path.Wrap( "SetTraitsOnLoot", function( baseFunc, lootData, args )
 	if upgradeName == "TrialUpgrade" or upgradeName == "StackUpgrade" then -- Chaos and poms respectively- both have different offering mechanics not accounted for here
 		return baseFunc( lootData, args )
 	end
-	if lootData.Name == "HermesUpgrade" and not BoonControl.config.AllowHermesControl then
+	if ( lootData.Name == "HermesUpgrade" ) and not BoonControl.config.AllowHermesControl or HeroSlotFilled("Shout") and not BoonControl.config.AllowHermesControlWithCall then
 		return baseFunc( lootData, args )
 	end
 	if upgradeName == "WeaponUpgrade" and BoonControl.config.AllowedHammerControl < AppearanceNum then
