@@ -646,6 +646,63 @@ function HSMConfigMenu.CreateRNGMenu( screen )
 
   HSMConfigMenu__UpdateGenericConfigCheckbox(screen, screen.Components["HammerControlCheckBox"])
   itemLocationY = itemLocationY + itemSpacingY
+
+  -----------------
+  -- RacingStartSelector.config.ChosenStart
+  -----------------
+  screen.Components["StartingRewardTextBox"] = CreateScreenComponent({
+    Name = "BlankObstacle",
+    Scale = 1,
+    X = itemLocationX,
+    Y = itemLocationY,
+    Group = "Combat_Menu"
+  })
+  CreateTextBox({
+    Id = screen.Components["StartingRewardTextBox"].Id,
+    Text = "Starting reward to force:",
+    Color = Color.BoonPatchCommon,
+    FontSize = 16,
+    OffsetX = 0, OffsetY = 0,
+    Font = "AlegrayaSansSCRegular",
+    ShadowBlur = 0, ShadowColor = { 0, 0, 0, 1 }, ShadowOffset = { 0,  2 },
+    Justification = "Left"
+  })
+  local originalReward = RacingStartSelector.config.ChosenStart
+  local originalRewardName = originalReward
+  if originalRewardName == "EpicBoon" then
+    originalRewardName = "Epic Boon"
+  end
+  local rewardOptions = {
+    Default = {
+      event = function (dropdown)
+        RacingStartSelector.config.ChosenStart = originalReward
+      end,
+      Text = originalRewardName
+    },
+    [1] = {
+      event = function (dropdown)
+        RacingStartSelector.config.ChosenStart = "EpicBoon"
+      end,
+      Text = "Epic Boon"
+    },
+    [2] = {
+      event = function (dropdown)
+        RacingStartSelector.config.ChosenStart = "Hammer"
+      end,
+      Text = "Hammer"
+    },
+  }
+  ErumiUILib.Dropdown.CreateDropdown(screen, {
+    Name = "StartingRewardDropDown",
+    Group = "Combat_Menu",
+    Scale = {X = .25, Y = .5},
+    Padding = {X = 0, Y = 2},
+    X = itemLocationX + itemSpacingX, Y = itemLocationY,
+    GeneralFontSize = 16,
+    Font = "AlegrayaSansSCRegular",
+    Items = rewardOptions,
+  })
+  itemLocationY = itemLocationY + itemSpacingY
 end
 
 ModUtil.LoadOnce(function()
