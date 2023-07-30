@@ -16,26 +16,22 @@ LernieControl.config = config
 LernieControl.Presets = {
     Vanilla = {
         Heads = {},
-        InheritVanilla = true,
     },
     NoPinkHeads = {
         Heads = {
             PinkLernieHead = false,
         },
-        InheritVanilla = true,
     },
     NoBlueHeads = {
         Heads = {
             BlueLernieHead = false,
         },
-        InheritVanilla = true,
     },
     NoPinkOrBlue = {
         Heads = {
             PinkLernieHead = false,
             BlueLernieHead = false,
         },
-        InheritVanilla = true,
     },
 }
 LernieControl.VanillaSet = {}
@@ -44,11 +40,8 @@ LernieControl.EligibleHeads = {}
 
 function LernieControl.ReadPreset()
     local preset = LernieControl.Presets[ LernieControl.config.LernieSetting ]
-    if preset.InheritVanilla then
-        RCLib.PopulateMinLength( LernieControl.EligibleHeads, RCLib.RemoveIneligibleStrings( preset.Heads, LernieControl.VanillaSet, RCLib.NameToCode.Bosses ), 2 ) -- Game crashes if there is only one head type in EnemySet
-    else
-        RCLib.PopulateMinLength( LernieControl.EligibleHeads, RCLib.GetEligible( preset.Heads, RCLib.NameToCode.Bosses ), 2 )
-    end
+    local eligibleHeads = RCLib.RemoveIneligibleStrings( preset.Heads, LernieControl.VanillaSet, RCLib.NameToCode.Bosses )
+    RCLib.PopulateMinLength( LernieControl.EligibleHeads, eligibleHeads, 2 ) -- Game crashes if there is only one head type in EnemySet
 end
 
 function LernieControl.UpdatePool()
