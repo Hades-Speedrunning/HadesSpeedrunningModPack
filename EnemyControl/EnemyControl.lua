@@ -155,15 +155,10 @@ function EnemyControl.UpdatePools() -- Inject every non-empty biome of the curre
         EnemySets[target] = ModUtil.Table.Copy( pool )
         DebugPrint({Text = "Updated enemy pool for "..biome})
     end
-    for encounter, data in pairs( EncounterData ) do -- If EnemySets is updated without updating EncounterData to match, behaviour is unreliable. Inheritance first
-        if data.InheritFrom then
-            for k, v in ipairs( data.InheritFrom ) do
-                data.EnemySet = EnemySets[EnemyControl.EncounterEnemySets[v]] or data.EnemySet or nil
-                if ModUtil.Path.Get( "data.HardEncounterOverrideValues.EnemySet" ) then
-                    data.HardEncounterOverrideValues.EnemySet = ModUtil.Path.Get( "EnemyControl.EncounterHardEnemySets" )[v] or data.HardEncounterOverrideValues.EnemySet
-                end
-            end
-        end
+    
+	for encounterName, encounterData in pairs( EncounterData ) do -- If EnemySets is updated without updating EncounterData to match, behaviour is unreliable. Inheritance first
+		encounterData.Name = encounterName
+		ProcessDataInheritance( encounterData, EncounterData )
     end
     for encounter, set in pairs( EnemyControl.EncounterEnemySets ) do 
         EncounterData[encounter].EnemySet = ModUtil.Table.Copy( EnemySets[set] )
