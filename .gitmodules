@@ -19,3 +19,5 @@
 [submodule "SplitDisplay"]
 	path = SplitDisplay
 	url = https://github.com/cgullsHadesMods/hades-SplitDisplay.git
+[submodule "hades-CharonSackControl/"]
+	url = https://github.com/cgullsHadesMods/hades-CharonSackControl.git
