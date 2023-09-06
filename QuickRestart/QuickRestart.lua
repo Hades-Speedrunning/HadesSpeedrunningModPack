@@ -2,8 +2,8 @@ ModUtil.Mod.Register("QuickRestart")
 
 local config = {
     Enabled = true,
-    KeepStartingKeepsake = true,
-    QuickDeathEnabled = true,
+    KeepStartingKeepsake = true, -- Reset keepsake if QuickRestart
+    QuickDeathEnabled = true, -- Treat non-completion deaths as a QuickRestart
 }
 
 QuickRestart.config = config
