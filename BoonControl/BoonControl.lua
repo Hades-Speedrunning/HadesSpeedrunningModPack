@@ -135,8 +135,13 @@ ModUtil.Path.Wrap( "SetTraitsOnLoot", function( baseFunc, lootData, args )
 	if upgradeName == "TrialUpgrade" or upgradeName == "StackUpgrade" then -- Chaos and poms respectively- both have different offering mechanics not accounted for here
 		return baseFunc( lootData, args )
 	end
-	if ( lootData.Name == "HermesUpgrade" ) and not BoonControl.config.AllowHermesControl or HeroSlotFilled("Shout") and not BoonControl.config.AllowHermesControlWithCall then
-		return baseFunc( lootData, args )
+	if ( lootData.Name == "HermesUpgrade" ) then
+		local shoutAndAllowed = HeroSlotFilled( "Shout" ) and BoonControl.config.AllowHermesControlWithCall
+		local notShoutAndAllowed = not HeroSlotFilled( "Shout" ) and BoonControl.config.AllowHermesControl
+	
+		if not ( shoutAndAllowed or notShoutAndAllowed ) then
+			return baseFunc( lootData, args )
+		end
 	end
 	if upgradeName == "WeaponUpgrade" and BoonControl.config.AllowedHammerControl < AppearanceNum then
 		return baseFunc( lootData, args )
