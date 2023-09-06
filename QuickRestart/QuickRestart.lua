@@ -77,7 +77,7 @@ OnControlPressed{ "Assist Use Shout Reload",
 
 OnAnyLoad{ "RoomPreRun",
     function ( triggerArgs )
-        if QuickRestart.UsedQuickRestart then
+        if QuickRestart.UsedQuickRestart or QuickRestart.QuickDeathApplicable then
             thread( PlayVoiceLines, GlobalVoiceLines.EnteredDeathAreaVoiceLines )
             QuickRestart.UsedQuickRestart = false
 
