@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/), and will follow [Semantic Versioning](https://semver.org/).
 
+## [1.3.1] - 2024-03-19
+
+### Bug fixes
+
+ - Using QuickRestart when in a Chaos Gate no longer causes the mirror to behave strangely [fixed by Pseudonym777](https://github.com/Hades-Speedrunning/HadesSpeedrunningModPack/pull/33/commits/46a1119da2032482e545b6d3b915d8f83a427b74)
+
+
 ## [1.3.0] - 2023-03-20
 
 ### Added
